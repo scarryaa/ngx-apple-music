@@ -13,15 +13,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "sourceMap": true,    
-    "paths": {
-      "ngx-apple-music": [
-        "dist/ngx-apple-music"
-      ],
-      "@angular/*": [
-        "./node_modules/@angular/*"
-      ]
-    },
+    "sourceMap": true,
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
@@ -34,7 +26,12 @@
     "lib": [
       "ES2022",
       "dom"
-    ]
+    ],
+    "paths": {
+      "ngx-apple-music": [
+        "projects/ngx-apple-music/src/public-api.ts"
+      ]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
