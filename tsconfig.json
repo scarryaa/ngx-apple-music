@@ -1,9 +1,6 @@
 /* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "compileOnSave": false,
-  "include": [
-    "projects/ngx-apple-music/src", "projects/ngx-apple-music/assets/js/musickit.js",
-  ],
   "compilerOptions": {
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
@@ -14,25 +11,27 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
-    "declaration": false,
+    "declaration": true,
     "downlevelIteration": true,
     "experimentalDecorators": true,
+    "preserveConstEnums": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "ES2022",
+    "isolatedModules": true,
     "module": "ES2022",
     "useDefineForClassFields": false,
-    "lib": [
-      "ES2022",
-      "dom"
-    ],
     "paths": {
       "ngx-apple-music": [
         "projects/ngx-apple-music/src/public-api.ts"
       ]
     }
   },
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,

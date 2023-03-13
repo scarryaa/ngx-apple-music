@@ -1,12 +1,14 @@
 {
   "name": "ngx-apple-music",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build && npm run copy-dts",
+    "build:watch": "npm run build && ng build --watch",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "copy-dts": "copyfiles -u 3 \"projects/**/*.d.ts\" dist/ngx-apple-music"
   },
   "private": true,
   "dependencies": {

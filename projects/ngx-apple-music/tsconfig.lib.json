@@ -3,6 +3,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "../../out-tsc/lib",
+    "typeRoots" : ["./src/types/", "node_modules/@types"],
     "declaration": true,
     "declarationMap": true,
     "inlineSources": true,

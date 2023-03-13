@@ -1,189 +1,146 @@
-import * as i0 from '@angular/core';
-import { Injectable, NgModule } from '@angular/core';
 import { __awaiter } from 'tslib';
+import * as i0 from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
+import { BehaviorSubject, map, distinctUntilChanged, Subscription } from 'rxjs';
 
-class NgxAppleMusicService {
-    constructor() { }
+class Store {
+    constructor(initialState) {
+        this._state = new BehaviorSubject(initialState);
+    }
+    get state$() {
+        return this._state.asObservable();
+    }
+    get state() {
+        return this._state.getValue();
+    }
+    setState(fn) {
+        const state = fn(this.state);
+        this._state.next(Object.assign(Object.assign({}, this.state), state));
+    }
+    select(selector) {
+        return this.state$.pipe(map(selector), distinctUntilChanged());
+    }
 }
-NgxAppleMusicService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: NgxAppleMusicService, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
-NgxAppleMusicService.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: NgxAppleMusicService, providedIn: 'root' });
-i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: NgxAppleMusicService, decorators: [{
+Store.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: Store, deps: [{ token: '' }], target: i0.ɵɵFactoryTarget.Injectable });
+Store.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: Store, providedIn: 'root' });
+i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: Store, decorators: [{
             type: Injectable,
-            args: [{
-                    providedIn: 'root'
-                }]
-        }], ctorParameters: function () { return []; } });
+            args: [{ providedIn: 'root' }]
+        }], ctorParameters: function () {
+        return [{ type: undefined, decorators: [{
+                        type: Inject,
+                        args: ['']
+                    }] }];
+    } });
 
-class NgxAppleMusicModule {
-}
-NgxAppleMusicModule.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: NgxAppleMusicModule, deps: [], target: i0.ɵɵFactoryTarget.NgModule });
-NgxAppleMusicModule.ɵmod = i0.ɵɵngDeclareNgModule({ minVersion: "14.0.0", version: "15.1.5", ngImport: i0, type: NgxAppleMusicModule });
-NgxAppleMusicModule.ɵinj = i0.ɵɵngDeclareInjector({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: NgxAppleMusicModule, providers: [NgxAppleMusicService] });
-i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: NgxAppleMusicModule, decorators: [{
-            type: NgModule,
-            args: [{
-                    declarations: [],
-                    imports: [],
-                    exports: [],
-                    providers: [NgxAppleMusicService]
-                }]
-        }] });
-
-var MediaItemType;
-(function (MediaItemType) {
-    MediaItemType[MediaItemType["albums"] = 0] = "albums";
-    MediaItemType[MediaItemType["songs"] = 1] = "songs";
-    MediaItemType[MediaItemType["artists"] = 2] = "artists";
-    MediaItemType[MediaItemType["musicVideos"] = 3] = "musicVideos";
-    MediaItemType[MediaItemType["playlists"] = 4] = "playlists";
-    MediaItemType[MediaItemType["stations"] = 5] = "stations";
-})(MediaItemType || (MediaItemType = {}));
-var PlaylistType;
-(function (PlaylistType) {
-    PlaylistType[PlaylistType["editorial"] = 0] = "editorial";
-    PlaylistType[PlaylistType["external"] = 1] = "external";
-    PlaylistType[PlaylistType["personalMix"] = 2] = "personalMix";
-    PlaylistType[PlaylistType["replay"] = 3] = "replay";
-    PlaylistType[PlaylistType["userShared"] = 4] = "userShared";
-})(PlaylistType || (PlaylistType = {}));
-var TrackTypes;
-(function (TrackTypes) {
-    TrackTypes[TrackTypes["musicVideos"] = 0] = "musicVideos";
-    TrackTypes[TrackTypes["songs"] = 1] = "songs";
-})(TrackTypes || (TrackTypes = {}));
-var MediaKind;
-(function (MediaKind) {
-    MediaKind[MediaKind["audio"] = 0] = "audio";
-    MediaKind[MediaKind["video"] = 1] = "video";
-})(MediaKind || (MediaKind = {}));
-var ContentRating;
-(function (ContentRating) {
-    ContentRating[ContentRating["clean"] = 0] = "clean";
-    ContentRating[ContentRating["explicit"] = 1] = "explicit";
-})(ContentRating || (ContentRating = {}));
-
-class Album {
-    constructor(data) {
-        let defaults = {
-            type: MediaItemType.albums
-        };
-        return Object.assign(this, data, defaults);
+var Events;
+(function (Events) {
+    Events["audioTrackAdded"] = "audioTrackAdded";
+    Events["audioTrackChanged"] = "audioTrackChanged";
+    Events["audioTrackRemoved"] = "audioTrackRemoved";
+    Events["authorizationStatusDidChange"] = "authorizationStatusDidChange";
+    Events["authorizationStatusWillChange"] = "authorizationStatusWillChange";
+    Events["bufferedProgressDidChange"] = "bufferedProgressDidChange";
+    Events["capabilitiesChanged"] = "capabilitiesChanged";
+    Events["configured"] = "configured";
+    Events["drmUnsupported"] = "drmUnsupported";
+    Events["eligibleForSubscribeView"] = "eligibleForSubscribeView";
+    Events["forcedTextTrackChanged"] = "forcedTextTrackChanged";
+    Events["loaded"] = "loaded";
+    Events["mediaCanPlay"] = "mediaCanPlay";
+    Events["mediaElementCreated"] = "mediaElementCreated";
+    Events["mediaItemStateDidChange"] = "mediaItemStateDidChange";
+    Events["mediaItemStateWillChange"] = "mediaItemStateWillChange";
+    Events["mediaPlaybackError"] = "mediaPlaybackError";
+    Events["mediaSkipAvailable"] = "mediaSkipAvailable";
+    Events["mediaUpNext"] = "mediaUpNext";
+    Events["metadataDidChange"] = "metadataDidChange";
+    Events["nowPlayingItemWillChange"] = "nowPlayingItemWillChange";
+    Events["nowPlayingItemDidChange"] = "nowPlayingItemDidChange";
+    Events["playbackBitrateDidChange"] = "playbackBitrateDidChange";
+    Events["playbackDurationDidChange"] = "playbackDurationDidChange";
+    Events["playbackProgressDidChange"] = "playbackProgressDidChange";
+    Events["playbackRateDidChange"] = "playbackRateDidChange";
+    Events["playbackStateWillChange"] = "playbackStateWillChange";
+    Events["playbackStateDidChange"] = "playbackStateDidChange";
+    Events["playbackTargetAvailableDidChange"] = "playbackTargetAvailableDidChange";
+    Events["playbackTimeDidChange"] = "playbackTimeDidChange";
+    Events["playbackVolumeDidChange"] = "playbackVolumeDidChange";
+    Events["playerTypeDidChange"] = "playerTypeDidChange";
+    Events["primaryPlayerDidChange"] = "primaryPlayerDidChange";
+    Events["queueIsReady"] = "queueIsReady";
+    Events["queueItemsDidChange"] = "queueItemsDidChange";
+    Events["queuePositionDidChange"] = "queuePositionDidChange";
+    Events["shuffleModeDidChange"] = "shuffleModeDidChange";
+    Events["repeatModeDidChange"] = "repeatModeDidChange";
+    Events["storefrontCountryCodeDidChange"] = "storefrontCountryCodeDidChange";
+    Events["storefrontIdentifierDidChange"] = "storefrontIdentifierDidChange";
+    Events["textTrackAdded"] = "textTrackAdded";
+    Events["textTrackChanged"] = "textTrackChanged";
+    Events["textTrackRemoved"] = "textTrackRemoved";
+    Events["timedMetadataDidChange"] = "timedMetadataDidChange";
+})(Events || (Events = {}));
+var ResourceType;
+(function (ResourceType) {
+    ResourceType["activities"] = "activities";
+    ResourceType["albums"] = "albums";
+    ResourceType["apple-curators"] = "apple-curators";
+    ResourceType["artists"] = "artists";
+    ResourceType["charts"] = "charts";
+    ResourceType["curators"] = "curators";
+    ResourceType["genres"] = "genres";
+    ResourceType["music-videos"] = "music-videos";
+    ResourceType["playlists"] = "playlists";
+    ResourceType["search"] = "search";
+    ResourceType["search/hints"] = "search/hints";
+    ResourceType["songs"] = "songs";
+    ResourceType["stations"] = "stations";
+    //personalized content
+    ResourceType["library"] = "library";
+    ResourceType["recommendations"] = "recommendations";
+    ResourceType["recent/played"] = "recent/played";
+    ResourceType["history/heavy-rotation"] = "history/heavy-rotation";
+    //storefronts
+    ResourceType["storefronts"] = "storefronts";
+})(ResourceType || (ResourceType = {}));
+var API_PATH;
+(function (API_PATH) {
+    API_PATH["BASE"] = "/v1/";
+    API_PATH["CATALOG"] = "/v1/catalog/";
+    API_PATH["LIBRARY"] = "/v1/me/library/";
+    API_PATH["STOREFRONT"] = "/v1/storefronts/";
+})(API_PATH || (API_PATH = {}));
+const initialState = {
+    initialized: false,
+    volume: 0.25,
+    storefront: '',
+    queue: [],
+    history: [],
+    queuePosition: 0,
+    shuffleMode: MusicKit.PlayerShuffleMode.off,
+    repeatMode: MusicKit.PlayerRepeatMode.none,
+    currentTrack: null,
+    currentTrackArtworkURL: '',
+    currentPlaybackTime: 0,
+    currentPlaybackDuration: 0,
+    isPlaying: false,
+    playbackState: null,
+    userPlaylists: []
+};
+class MusickitStore extends Store {
+    constructor() {
+        super(initialState);
+        this.subs = new Subscription();
     }
-}
-class Artist {
-    constructor(data) {
-        let defaults = {
-            type: MediaItemType.artists
-        };
-        return Object.assign(this, data, defaults);
+    ngOnDestroy() {
+        this.subs.unsubscribe();
     }
-}
-class Song {
-    constructor(data) {
-        let defaults = {
-            type: MediaItemType.songs
-        };
-        return Object.assign(this, data, defaults);
+    addEventListener(listener) {
+        this.instance.addEventListener(listener.event, listener.function);
     }
-}
-class MusicVideo {
-    constructor(data) {
-        let defaults = {
-            type: MediaItemType.musicVideos,
-            attributes: { videoSubType: 'preview' }
-        };
-        let merged = Object.assign({}, data.attributes, defaults.attributes);
-        data.attributes = merged;
-        defaults.attributes = merged;
-        return Object.assign(this, data, defaults);
-    }
-}
-class Playlist {
-    constructor(data) {
-        let defaults = {
-            type: MediaItemType.playlists
-        };
-        return Object.assign(this, data, defaults);
-    }
-}
-class Station {
-    constructor(data) {
-        let defaults = {
-            type: MediaItemType.stations
-        };
-        return Object.assign(this, data, defaults);
-    }
-}
-
-var MusicKitWrapper;
-(function (MusicKitWrapper) {
-    var queue = new Array();
-    function getInstance() {
+    reconfigure(devToken, appName, buildVer) {
         return __awaiter(this, void 0, void 0, function* () {
-            return MusicKit.getInstance();
-        });
-    }
-    MusicKitWrapper.getInstance = getInstance;
-    //media playback & management
-    function play() {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('called');
-            setQueue(queue);
-            let instance = MusicKit.getInstance();
-            instance.player.play();
-        });
-    }
-    MusicKitWrapper.play = play;
-    function getUserPlaylists() {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('called');
-            let instance = yield MusicKit.getInstance();
-            console.log('me: ' + (yield MusicKit.getInstance().me));
-            let playlists = yield instance.api.library.playlists(null);
-            console.log(playlists);
-            let playlistId = playlists[1].id;
-            yield instance.setQueue({
-                playlist: playlistId,
-            }).then(() => __awaiter(this, void 0, void 0, function* () { return yield instance.player.prepareToPlay().then(() => __awaiter(this, void 0, void 0, function* () { return yield instance.player.play(); })); }));
-        });
-    }
-    MusicKitWrapper.getUserPlaylists = getUserPlaylists;
-    function setQueue(queue, _) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let instance = MusicKit.getInstance();
-            queue.push(new Album({ id: '1', href: '' }));
-            return instance.setQueue(queue);
-        });
-    }
-    MusicKitWrapper.setQueue = setQueue;
-    function playNext(queue, _) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let instance = MusicKit.getInstance();
-            return instance.player.queue.prepend(queue);
-        });
-    }
-    MusicKitWrapper.playNext = playNext;
-    function playLast(queue, _) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let instance = MusicKit.getInstance();
-            return instance.player.queue.append(queue);
-        });
-    }
-    MusicKitWrapper.playLast = playLast;
-    //init
-    function configureMusicKit(devToken, appName, buildVer) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log(yield initMusicKit(devToken, appName, buildVer).then(() => __awaiter(this, void 0, void 0, function* () {
-                return yield checkIfUserIsAuthorized()
-                    .then((res) => __awaiter(this, void 0, void 0, function* () { console.log(yield MusicKit.getInstance().musicUserToken); return !res ? yield startAuthentication() : null; }));
-            })));
-        });
-    }
-    MusicKitWrapper.configureMusicKit = configureMusicKit;
-    ;
-    function initMusicKit(devToken, appName, buildVer) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield MusicKit.configure({
+            this.instance = yield MusicKit.configure({
                 developerToken: devToken,
                 app: {
                     name: appName,
@@ -192,91 +149,150 @@ var MusicKitWrapper;
             });
         });
     }
-    MusicKitWrapper.initMusicKit = initMusicKit;
-    // export async function internalInit() {
-    //     queue = new Array<MediaItem>();
-    //     queuePosition = 0;
-    // }
-    //auth
-    function startAuthentication() {
+    ;
+    initMusicKit(devToken, appName, buildVer) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield MusicKit.getInstance().authorize();
+            this.instance = yield MusicKit.configure({
+                developerToken: devToken,
+                app: {
+                    name: appName,
+                    build: buildVer,
+                },
+            });
+            // registering events
+            this.instance.addEventListener(Events.playbackVolumeDidChange, ((event) => this.setState((state) => ({ volume: this.instance.volume }))));
+            this.instance.addEventListener(Events.nowPlayingItemDidChange, ((event) => {
+                if (this.instance.nowPlayingItem) {
+                    this.state.history.push(this.instance.nowPlayingItem);
+                    return this.setState((state) => {
+                        var _a, _b, _c;
+                        return (Object.assign(Object.assign({}, state), {
+                            currentTrackArtworkURL: MusicKit.formatArtworkURL((_b = (_a = this.instance.nowPlayingItem) === null || _a === void 0 ? void 0 : _a.artwork) !== null && _b !== void 0 ? _b : (_c = state.currentTrack) === null || _c === void 0 ? void 0 : _c.artwork),
+                            currentPlaybackTime: 0, currentPlaybackDuration: 0, currentTrack: this.instance.nowPlayingItem
+                        }));
+                    });
+                }
+            }));
+            this.instance.addEventListener(Events.playbackTimeDidChange, ((event) => this.setState((state) => ({ currentPlaybackTime: this.instance.currentPlaybackTime }))));
+            this.instance.addEventListener(Events.playbackDurationDidChange, ((event) => this.setState((state) => ({ currentPlaybackDuration: this.instance.currentPlaybackDuration }))));
+            this.instance.addEventListener(Events.playbackStateDidChange, ((event) => {
+                this.setState((state) => (Object.assign(Object.assign({}, state), { isPlaying: this.instance.isPlaying, playbackState: this.instance.playbackState })));
+            }));
+            this.instance.volume = this.state.volume;
+            this.instance.autoplayEnabled = true;
+            this.instance._autoplayEnabled = true;
+            this.instance._bag.features['enhanced-hls'] = true;
+            this.instance.bitrate = 2048;
+            var playlists = yield this.getUserPlaylists().then((res) => res);
+            this.setState((state) => ({ userPlaylists: playlists }));
+            this.getSong();
         });
     }
-    MusicKitWrapper.startAuthentication = startAuthentication;
-    function checkIfUserIsAuthorized() {
+    startPlayingSong(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            return MusicKit.getInstance().isAuthorized;
-        });
-    }
-    MusicKitWrapper.checkIfUserIsAuthorized = checkIfUserIsAuthorized;
-})(MusicKitWrapper || (MusicKitWrapper = {}));
-
-class PlaybackService {
-    constructor() { }
-    play() {
-        return __awaiter(this, void 0, void 0, function* () {
-            MusicKitWrapper.play();
-        });
-    }
-    getUserPlaylists() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield MusicKitWrapper.getUserPlaylists();
-        });
-    }
-}
-PlaybackService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: PlaybackService, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
-PlaybackService.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: PlaybackService, providedIn: 'root' });
-i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: PlaybackService, decorators: [{
-            type: Injectable,
-            args: [{
-                    providedIn: 'root'
-                }]
-        }], ctorParameters: function () { return []; } });
-
-class AuthenticationService {
-    constructor() { }
-    checkIfUserAuthorized() {
-        return __awaiter(this, void 0, void 0, function* () {
-            var authorized = yield MusicKitWrapper.checkIfUserIsAuthorized();
-            if (authorized)
-                return true;
-            else
-                return this.authorizeUser();
+            yield this.instance.setQueue({ song: id, startPlaying: true }).catch((error) => console.error(error));
         });
     }
     authorizeUser() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield MusicKitWrapper.startAuthentication();
+            return yield MusicKit.getInstance().authorize();
         });
     }
-}
-AuthenticationService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: AuthenticationService, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
-AuthenticationService.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: AuthenticationService, providedIn: 'root' });
-i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: AuthenticationService, decorators: [{
-            type: Injectable,
-            args: [{
-                    providedIn: 'root'
-                }]
-        }], ctorParameters: function () { return []; } });
-
-class InitializationService {
-    constructor() { }
-    initMusicKit(devToken, appName, buildVer) {
-        return MusicKitWrapper.configureMusicKit(devToken, appName, buildVer);
+    checkUserAuthorization() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return MusicKit.getInstance().isAuthorized;
+        });
+    }
+    getPlaylistInfo(playlistId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var fullPlaylist = yield MusicKit.getInstance().api.music(API_PATH.LIBRARY + ResourceType.playlists + '/' + playlistId, { include: ['tracks'] });
+            return fullPlaylist.data.data[0];
+        });
+    }
+    getUserPlaylists() {
+        return __awaiter(this, void 0, void 0, function* () {
+            var playlists = yield MusicKit.getInstance().api.music(API_PATH.LIBRARY + ResourceType.playlists);
+            return playlists.data.data;
+        });
+    }
+    getSong() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const songId = '1498121711';
+            const songId2 = '302987568';
+            yield this.instance.setQueue({ song: songId }).catch((error) => console.error(error));
+            yield this.instance.playLater({ song: songId2 }).catch((error) => console.error(error));
+        });
+    }
+    skipToPreviousItem() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.instance.skipToPreviousItem();
+        });
+    }
+    skipToNextItem() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.instance.skipToNextItem();
+        });
+    }
+    togglePlayback() {
+        if (this.instance.isPlaying)
+            this.instance.pause();
+        else
+            this.instance.play();
+    }
+    seekToTime(time) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (time > this.instance.currentPlaybackTime)
+                this.instance._playbackControllerInternal._playerOptions.services.mediaItemPlayback._currentPlayer.audio.currentTime = time;
+            else
+                this.instance._mediaItemPlayback._currentPlayer.seekToTime(time);
+        });
+    }
+    // async waitSeekReady(time: number) {
+    //     const progress = setInterval(async () => {
+    //         if ((this.instance as any)._playbackControllerInternal._playerOptions.services.mediaItemPlayback._currentPlayer.currentBufferedProgress >= 20) {
+    //             (this.instance as any)._playbackControllerInternal._playerOptions.services.mediaItemPlayback._currentPlayer.audio.currentTime = time;
+    //             clearInterval(progress);
+    //         }
+    //     }, 200);
+    // }
+    setVolume(volume) {
+        this.instance.volume = volume;
+    }
+    toggleShuffleMode() {
+        if (this.state.shuffleMode == MusicKit.PlayerShuffleMode.off) {
+            this.instance.shuffleMode = MusicKit.PlayerShuffleMode.songs;
+            this.setState((state) => ({ shuffleMode: MusicKit.PlayerShuffleMode.songs }));
+        }
+        else {
+            this.instance.shuffleMode = MusicKit.PlayerShuffleMode.off;
+            this.setState((state) => ({ shuffleMode: MusicKit.PlayerShuffleMode.off }));
+        }
+    }
+    toggleRepeatMode() {
+        switch (this.state.repeatMode.valueOf()) {
+            case MusicKit.PlayerRepeatMode.none:
+                this.instance.repeatMode = MusicKit.PlayerRepeatMode.all;
+                this.setState((state) => ({ repeatMode: MusicKit.PlayerRepeatMode.all }));
+                break;
+            case MusicKit.PlayerRepeatMode.one:
+                this.instance.repeatMode = MusicKit.PlayerRepeatMode.none;
+                this.setState((state) => ({ repeatMode: MusicKit.PlayerRepeatMode.none }));
+                break;
+            case MusicKit.PlayerRepeatMode.all:
+                this.instance.repeatMode = MusicKit.PlayerRepeatMode.one;
+                this.setState((state) => ({ repeatMode: MusicKit.PlayerRepeatMode.one }));
+                break;
+        }
     }
 }
-InitializationService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: InitializationService, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
-InitializationService.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: InitializationService, providedIn: 'root' });
-i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: InitializationService, decorators: [{
+MusickitStore.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: MusickitStore, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
+MusickitStore.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: MusickitStore, providedIn: 'root' });
+i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: MusickitStore, decorators: [{
             type: Injectable,
             args: [{
                     providedIn: 'root'
                 }]
         }], ctorParameters: function () { return []; } });
-function initProvider(provider, devToken, appName, buildVer) {
-    return () => provider.initMusicKit(devToken, appName, buildVer);
-}
 
 /*
  * Public API Surface of ngx-apple-music
@@ -286,5 +302,5 @@ function initProvider(provider, devToken, appName, buildVer) {
  * Generated bundle index. Do not edit.
  */
 
-export { Album, Artist, AuthenticationService, InitializationService, MusicVideo, NgxAppleMusicModule, NgxAppleMusicService, PlaybackService, Playlist, Song, Station, initProvider };
+export { MusickitStore };
 //# sourceMappingURL=ngx-apple-music.mjs.map
