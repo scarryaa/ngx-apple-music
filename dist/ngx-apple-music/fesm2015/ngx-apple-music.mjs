@@ -113,19 +113,19 @@ var API_PATH;
 const initialState = {
     initialized: false,
     volume: 0.25,
-    storefront: '',
+    storefront: "",
     queue: [],
     history: [],
     queuePosition: 0,
     shuffleMode: MusicKit.PlayerShuffleMode.off,
     repeatMode: MusicKit.PlayerRepeatMode.none,
     currentTrack: null,
-    currentTrackArtworkURL: '',
+    currentTrackArtworkURL: "",
     currentPlaybackTime: 0,
     currentPlaybackDuration: 0,
     isPlaying: false,
-    playbackState: null,
-    userPlaylists: []
+    playbackState: 0,
+    userPlaylists: [],
 };
 class MusickitStore extends Store {
     constructor() {
@@ -149,7 +149,6 @@ class MusickitStore extends Store {
             });
         });
     }
-    ;
     initMusicKit(devToken, appName, buildVer) {
         return __awaiter(this, void 0, void 0, function* () {
             this.instance = yield MusicKit.configure({
@@ -160,37 +159,80 @@ class MusickitStore extends Store {
                 },
             });
             // registering events
-            this.instance.addEventListener(Events.playbackVolumeDidChange, ((event) => this.setState((state) => ({ volume: this.instance.volume }))));
-            this.instance.addEventListener(Events.nowPlayingItemDidChange, ((event) => {
+            this.instance.addEventListener(Events.playbackVolumeDidChange, (event) => this.setState((state) => ({ volume: this.instance.volume })));
+            this.instance.addEventListener(Events.nowPlayingItemDidChange, (event) => {
                 if (this.instance.nowPlayingItem) {
                     this.state.history.push(this.instance.nowPlayingItem);
                     return this.setState((state) => {
                         var _a, _b, _c;
                         return (Object.assign(Object.assign({}, state), {
                             currentTrackArtworkURL: MusicKit.formatArtworkURL((_b = (_a = this.instance.nowPlayingItem) === null || _a === void 0 ? void 0 : _a.artwork) !== null && _b !== void 0 ? _b : (_c = state.currentTrack) === null || _c === void 0 ? void 0 : _c.artwork),
-                            currentPlaybackTime: 0, currentPlaybackDuration: 0, currentTrack: this.instance.nowPlayingItem
+                            currentPlaybackTime: 0,
+                            currentPlaybackDuration: 0,
+                            currentTrack: this.instance.nowPlayingItem,
                         }));
                     });
                 }
-            }));
-            this.instance.addEventListener(Events.playbackTimeDidChange, ((event) => this.setState((state) => ({ currentPlaybackTime: this.instance.currentPlaybackTime }))));
-            this.instance.addEventListener(Events.playbackDurationDidChange, ((event) => this.setState((state) => ({ currentPlaybackDuration: this.instance.currentPlaybackDuration }))));
-            this.instance.addEventListener(Events.playbackStateDidChange, ((event) => {
-                this.setState((state) => (Object.assign(Object.assign({}, state), { isPlaying: this.instance.isPlaying, playbackState: this.instance.playbackState })));
-            }));
+            });
+            this.instance.addEventListener(Events.playbackTimeDidChange, (event) => this.setState((state) => ({
+                currentPlaybackTime: this.instance.currentPlaybackTime,
+            })));
+            this.instance.addEventListener(Events.playbackDurationDidChange, (event) => this.setState((state) => ({
+                currentPlaybackDuration: this.instance.currentPlaybackDuration,
+            })));
+            this.instance.addEventListener(Events.playbackStateDidChange, (event) => {
+                this.setState((state) => (Object.assign(Object.assign({}, state), {
+                    isPlaying: this.instance.isPlaying,
+                    playbackState: this.instance.playbackState,
+                })));
+            });
             this.instance.volume = this.state.volume;
             this.instance.autoplayEnabled = true;
             this.instance._autoplayEnabled = true;
-            this.instance._bag.features['enhanced-hls'] = true;
+            this.instance._bag.features["enhanced-hls"] = true;
             this.instance.bitrate = 2048;
+            this.instance.api.music.session._config.url =
+                "https://amp-api.music.apple.com";
             var playlists = yield this.getUserPlaylists().then((res) => res);
             this.setState((state) => ({ userPlaylists: playlists }));
-            this.getSong();
         });
     }
     startPlayingSong(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.instance.setQueue({ song: id, startPlaying: true }).catch((error) => console.error(error));
+            yield MusicKit.getInstance()
+                .setQueue({ song: id })
+                .finally(() => MusicKit.getInstance().play())
+                .catch((error) => console.error(error));
+        });
+    }
+    startPlayingMedia(id, type, shuffle) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const queueObject = type.includes("albums")
+                ? { album: id }
+                : { playlist: id };
+            if (shuffle) {
+                this.setState(() => ({
+                    shuffleMode: MusicKit.PlayerShuffleMode.songs,
+                }));
+            }
+            else {
+                this.setState(() => ({
+                    shuffleMode: MusicKit.PlayerShuffleMode.off,
+                }));
+            }
+            MusicKit.getInstance().shuffleMode = this.state.shuffleMode;
+            yield MusicKit.getInstance()
+                .setQueue(queueObject)
+                .finally(() => MusicKit.getInstance().changeToMediaAtIndex(0))
+                .catch((error) => console.error(error));
+        });
+    }
+    playStation(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield MusicKit.getInstance()
+                .setQueue({ station: id })
+                .finally(() => MusicKit.getInstance().changeToMediaAtIndex(0))
+                .catch((error) => console.error(error));
         });
     }
     authorizeUser() {
@@ -203,10 +245,41 @@ class MusickitStore extends Store {
             return MusicKit.getInstance().isAuthorized;
         });
     }
-    getPlaylistInfo(playlistId) {
+    getRecentlyPlayed() {
         return __awaiter(this, void 0, void 0, function* () {
-            var fullPlaylist = yield MusicKit.getInstance().api.music(API_PATH.LIBRARY + ResourceType.playlists + '/' + playlistId, { include: ['tracks'] });
-            return fullPlaylist.data.data[0];
+            return (yield MusicKit.getInstance().api.music(API_PATH.BASE +
+                "me/" +
+                ResourceType["recent/played"] +
+                "?include[albums]=artists")).data.data;
+        });
+    }
+    getUserRecommendations() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let tmpArray = [];
+            let result = (yield MusicKit.getInstance().api.music(API_PATH.BASE +
+                "me/" +
+                ResourceType.recommendations +
+                "?include[albums]=artists")).data.data;
+            console.log(result);
+            return result;
+        });
+    }
+    getPlaylistInfo(playlistId, isLibraryPlaylist) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var playlist = yield MusicKit.getInstance().api.music((isLibraryPlaylist ? API_PATH.LIBRARY : API_PATH.CATALOG + "us/") +
+                ResourceType.playlists +
+                "/" +
+                playlistId, { include: ["tracks", "catalog"] });
+            return playlist.data.data[0];
+        });
+    }
+    getAlbumInfo(albumId, isLibraryAlbum) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var album = yield MusicKit.getInstance().api.music((isLibraryAlbum ? API_PATH.LIBRARY : API_PATH.CATALOG + "us/") +
+                ResourceType.albums +
+                "/" +
+                albumId, { include: ["tracks", "catalog", "artists"] });
+            return album.data.data[0];
         });
     }
     getUserPlaylists() {
@@ -215,12 +288,10 @@ class MusickitStore extends Store {
             return playlists.data.data;
         });
     }
-    getSong() {
+    getSong(songId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const songId = '1498121711';
-            const songId2 = '302987568';
-            yield this.instance.setQueue({ song: songId }).catch((error) => console.error(error));
-            yield this.instance.playLater({ song: songId2 }).catch((error) => console.error(error));
+            var song = yield MusicKit.getInstance().api.music(API_PATH.CATALOG + "{{storefrontId}}/" + ResourceType.songs + "/" + songId);
+            return song.data.data[0];
         });
     }
     skipToPreviousItem() {
@@ -233,6 +304,23 @@ class MusickitStore extends Store {
             this.instance.skipToNextItem();
         });
     }
+    putPlaylist(playlistId, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield MusicKit.getInstance().api.music(API_PATH.LIBRARY +
+                ResourceType.playlists +
+                "/" +
+                playlistId +
+                "/" +
+                "tracks", {}, {
+                fetchOptions: {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        data: data,
+                    }),
+                },
+            });
+        });
+    }
     togglePlayback() {
         if (this.instance.isPlaying)
             this.instance.pause();
@@ -242,7 +330,8 @@ class MusickitStore extends Store {
     seekToTime(time) {
         return __awaiter(this, void 0, void 0, function* () {
             if (time > this.instance.currentPlaybackTime)
-                this.instance._playbackControllerInternal._playerOptions.services.mediaItemPlayback._currentPlayer.audio.currentTime = time;
+                this.instance._playbackControllerInternal._playerOptions.services.mediaItemPlayback._currentPlayer.audio.currentTime =
+                    time;
             else
                 this.instance._mediaItemPlayback._currentPlayer.seekToTime(time);
         });
@@ -258,39 +347,57 @@ class MusickitStore extends Store {
     setVolume(volume) {
         this.instance.volume = volume;
     }
+    replaceValue(item) {
+        for (var i in item) {
+            if (i == "prop") {
+                item["value"] = "";
+                break;
+            }
+        }
+    }
     toggleShuffleMode() {
         if (this.state.shuffleMode == MusicKit.PlayerShuffleMode.off) {
             this.instance.shuffleMode = MusicKit.PlayerShuffleMode.songs;
-            this.setState((state) => ({ shuffleMode: MusicKit.PlayerShuffleMode.songs }));
+            this.setState((state) => ({
+                shuffleMode: MusicKit.PlayerShuffleMode.songs,
+            }));
         }
         else {
             this.instance.shuffleMode = MusicKit.PlayerShuffleMode.off;
-            this.setState((state) => ({ shuffleMode: MusicKit.PlayerShuffleMode.off }));
+            this.setState((state) => ({
+                shuffleMode: MusicKit.PlayerShuffleMode.off,
+            }));
         }
     }
     toggleRepeatMode() {
         switch (this.state.repeatMode.valueOf()) {
             case MusicKit.PlayerRepeatMode.none:
                 this.instance.repeatMode = MusicKit.PlayerRepeatMode.all;
-                this.setState((state) => ({ repeatMode: MusicKit.PlayerRepeatMode.all }));
+                this.setState((state) => ({
+                    repeatMode: MusicKit.PlayerRepeatMode.all,
+                }));
                 break;
             case MusicKit.PlayerRepeatMode.one:
                 this.instance.repeatMode = MusicKit.PlayerRepeatMode.none;
-                this.setState((state) => ({ repeatMode: MusicKit.PlayerRepeatMode.none }));
+                this.setState((state) => ({
+                    repeatMode: MusicKit.PlayerRepeatMode.none,
+                }));
                 break;
             case MusicKit.PlayerRepeatMode.all:
                 this.instance.repeatMode = MusicKit.PlayerRepeatMode.one;
-                this.setState((state) => ({ repeatMode: MusicKit.PlayerRepeatMode.one }));
+                this.setState((state) => ({
+                    repeatMode: MusicKit.PlayerRepeatMode.one,
+                }));
                 break;
         }
     }
 }
 MusickitStore.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: MusickitStore, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
-MusickitStore.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: MusickitStore, providedIn: 'root' });
+MusickitStore.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: MusickitStore, providedIn: "root" });
 i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.1.5", ngImport: i0, type: MusickitStore, decorators: [{
             type: Injectable,
             args: [{
-                    providedIn: 'root'
+                    providedIn: "root",
                 }]
         }], ctorParameters: function () { return []; } });
 
